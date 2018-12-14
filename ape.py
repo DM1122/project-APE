@@ -1,36 +1,41 @@
-import faker
-from faker import Faker
-import random
 import selenium
 from selenium import webdriver
-import string
+import time
 
+import libs
+from libs import emailib
+
+voter_count = 3
 link = 'https://janegoodall.ca/our-work/roots-and-shoots/ape-fund/vote/st-thomas-aquinas-sustainable-garden-initiative/'
-domains = ['@hotmail.com', '@hotmail.ca', '@gmail.com', '@yahoo.ca', '@outlook.com', '@icloud.com']
 
-fake = Faker()
+driver = webdriver.Chrome('./webdrivers/chromedriver')
+driver.set_page_load_timeout(10)
+driver.set_window_size(800, 800)
+driver.set_window_position(1200, 200)
 
+print('Initiating APE')
+driver.get(link)        # navigate to url
+driver.find_element_by_id('open-voting').click()        # hit vote icon
+time.sleep(1)
 
-# browser = webdriver.Firefox()
-# browser.get(link)
+for i in range(1, voter_count+1):
+    email = emailib.generate_address()
+    print('#############################################')
+    print('{} joins the battle! ({}/{})'.format(email, i, voter_count))
 
-def generate_address_1():
-    mail = fake.first_name() + fake.last_name() + random.choice(domains)
-    return mail
-
-def generate_address_2():
-    min_char = 1
-    max_char = 5
-
-    words = ['xx_', '_xx', 'superstar', 'malicka', 'josh', 'glados', 'indie', 'pewie', 'penguin', 'sith', 'ragnarok', 'af', '123', '01']
-
-    allchar = string.ascii_letters + string.digits
-    rand = ''.join(random.choice(allchar) for x in range(random.randint(min_char, max_char)))
-
-    mail = random.choice([fake.first_name(),fake.last_name(), fake.word(ext_word_list=words)]) + random.choice([rand, fake.first_name(),fake.last_name(), rand]) + random.choice(domains)
-    return mail.lower()
+    driver.find_element_by_id('input_4_3').send_keys(email)     # type email
+    time.sleep(1)
+    driver.find_element_by_id('gform_submit_button_4').click()      # hit 'vote' button
+    time.sleep(1)
 
 
-print(generate_address_2())
+    for j in range(1, 13):
+        print('{} is voting... ({}/12)'.format(email, j))
+        driver.refresh()
+        time.sleep(1)
 
+    driver.find_element_by_id('input_4_3').clear()
+    time.sleep(1)
 
+vote_count = voter_count * 12
+print('Success! total votes gained:', vote_count)
